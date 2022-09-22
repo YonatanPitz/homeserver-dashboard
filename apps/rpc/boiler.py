@@ -1,5 +1,4 @@
 import socket
-# import time
 from enum import Enum
 
 class BoilerState(Enum):
@@ -7,7 +6,7 @@ class BoilerState(Enum):
     ON = 1
 
 class BoilerInterface:
-    def __init__(self, server_addr=("10.100.102.8", 80)):
+    def __init__(self, server_addr=("10.100.102.23", 80)):
         self.sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self.server_addr = server_addr
 
@@ -47,16 +46,23 @@ class BoilerInterface:
         self.send_msg(msg)
         resp = self.recv_msg()
         if resp is not None:
-            if ((resp[33] & 0x10) == 0):
+            if ((resp[33] & 0x10) == 0x10):
                 return BoilerState.ON
             else:
                 return BoilerState.OFF
+        else:
+            print("Error getting state")
+            return None
 
 
 if __name__ == "__main__":
+    import time
     boiler = BoilerInterface()
-    # boiler.turn_on()
-    # boiler.turn_off()
+    boiler.turn_on()
+    time.sleep(1)
+    print(boiler.get_state())
+    boiler.turn_off()
+    time.sleep(1)
     print(boiler.get_state())
 
     

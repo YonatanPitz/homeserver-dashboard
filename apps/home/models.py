@@ -8,3 +8,17 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 
+class AC(models.Model):
+    def __str__(self):
+        return self.name
+
+    name = models.CharField(max_length=200)
+    class AC_API(models.TextChoices):
+        SENSIBO = 'Sensibo'
+        ELECTRA = 'Electra'
+
+    api = models.CharField(
+        max_length=10,
+        choices=AC_API.choices,
+        default=AC_API.SENSIBO,
+    )

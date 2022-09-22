@@ -30,19 +30,21 @@
     <!-- Page content -->
     <div class="container-fluid mt--6">
       <div class="row">
-        <div class="col-xl-8
-        ">
+        <div class="col-xl">
           <div class="card">
             <div class="card-header bg-transparent">
               <div class="row">
+                <div class="col-1">
+                  <i class="fa fa-shower"></i>
+                </div>
                 <div class="col">
                   <h5 class="h3 mb-0">Boiler</h5>
                 </div>
               </div>
             </div>
             <div class="card-body">
-              <div class="col w-80 align-items-center">
-                <button type="button" id="boiler_btn" class="btn btn-outline-danger w-100" onclick="boiler_click()">
+              <div class="col">
+                <button type="button" id="boiler_btn" class="btn btn-danger" onclick="boiler_power_click()">
                   <div>
                     <i class="ni ni-button-power"></i>
                     <!-- <span>Power</span> -->
@@ -53,6 +55,70 @@
           </div>
         </div>
       </div>
+      {% for ac in acs_list %}
+      <div class="row">
+        <div class="col-xl-8">
+          <div class="card">
+            <div class="card-header bg-transparent">
+              <div class="row">
+                <div class="col-1">
+                  <i class="fa fa-wind"></i>
+                </div>
+                <div class="col">
+                  <h5 class="h3 mb-0">{{ac.name}} ({{ac.api}})</h5>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col">
+                  <button type="button" id="ac_power_btn_{{ac.id}}" class="btn btn-success w-100" onclick="ac_click({{ac.id}}, 'power', 0)">
+                      <i class="ni ni-button-power"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="row"><br></div>
+              <div class="row">
+                <div class="col">
+                  <div class="dropdown">
+                    <i class="fa fa-temperature-high" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                      {% for temp in ac.templist %}
+                      <a class="dropdown-item" onclick="ac_click({{ac.id}}, 'temperature', {{temp}})">{{temp}}</a>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <span id="temperature_{{ac.id}}">18</span>
+                </div>
+                <div class="col">
+                  <div class="dropdown">
+                    <i class="fa fa-fan" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                      <a class="dropdown-item" onclick="ac_click('{{ac.id}}', 'fan', 'Low')">Low</a>
+                      <a class="dropdown-item" onclick="ac_click('{{ac.id}}', 'fan', 'Med')">Med</a>
+                      <a class="dropdown-item" onclick="ac_click('{{ac.id}}', 'fan', 'High')">High</a>
+                      <a class="dropdown-item" onclick="ac_click('{{ac.id}}', 'fan', 'Auto')">Auto</a>
+                    </div>
+                  </div>
+                  <span id="fan_{{ac.id}}">Low</span>
+                </div>
+                <div class="col">
+                  <div class="dropdown">
+                    <i class="fa fa-sun" id="ACdropdownMenuButton_{{ac.id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                      <a class="dropdown-item" onclick="ac_click('{{ac.id}}', 'mode', 'HEAT')"><i class="fa fa-sun"></i></a>
+                      <a class="dropdown-item" onclick="ac_click('{{ac.id}}', 'mode', 'COOL')"><i class="fa fa-snowflake"></i></a>
+                      <a class="dropdown-item" onclick="ac_click('{{ac.id}}', 'mode', 'FAN')"><i class="fa fa-fan"></i></a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
 
       {% include "includes/footer.html" %}
 
@@ -66,9 +132,13 @@
   <script src="/static/assets/vendor/chart.js/dist/Chart.min.js"></script>
   <script src="/static/assets/vendor/chart.js/dist/Chart.extension.js"></script>
   <script>
-  const ON_BUTTON = "btn btn-outline-danger w-100";
-  const OFF_BUTTON = "btn btn-outline-success w-100";
-  const ERROR_BUTTON = "btn btn-outline-secondary w-100";
+  const POWER_ON_BUTTON = "btn btn-danger w-100";
+  const POWER_OFF_BUTTON = "btn btn-success w-100";
+  const POWER_ERROR_BUTTON = "btn btn-secondary w-100";
+  const HEAT_MODE_ICON = "fa fa-sun";
+  const COOL_MODE_ICON = "fa fa-snowflake";
+  const FAN_MODE_ICON = "fa fa-fan";
+  let acs = {}
 
   function set_boiler_color() {
     $.ajax({
@@ -79,28 +149,25 @@
       },
       dataType: "json",
       success: (data) => {
-        if (data['status'] == 0){
-          classname = OFF_BUTTON;
-        }
-        if (data['status'] == 1){
-          classname = ON_BUTTON;
+        console.log(data);
+        let classname = POWER_OFF_BUTTON;
+        if (data['power'] == 1){
+          classname = POWER_ON_BUTTON;
         }
         document.getElementById("boiler_btn").className = classname;
       },
       error: (error) => {
         console.log(error);
-        classname = ERROR_BUTTON;
+        classname = POWER_ERROR_BUTTON;
         document.getElementById("boiler_btn").className = classname;
       }
     });
   }
 
-  function boiler_click() {
-    let status_req = ''
-    if (document.getElementById("boiler_btn").className == OFF_BUTTON) {
-      status_req = 'on'
-    } else {
-      status_req = 'off'
+  function boiler_power_click() {
+    status_req = 'OFF'
+    if (document.getElementById("boiler_btn").className == POWER_OFF_BUTTON) {
+      status_req = 'ON'
     }
     $.ajax({
       url: "/set_status",
@@ -112,24 +179,87 @@
       },
       data: JSON.stringify({
         "entity": "boiler",
+        "id": 0,
         "status": status_req
       }),
       success: (data) => {
-        if (data['status'] == 0){
-          classname = OFF_BUTTON;
-        }
-        if (data['status'] == 1){
-          classname = ON_BUTTON;
-        }
-        document.getElementById("boiler_btn").className = classname;
+        set_boiler_color();
       },
       error: (error) => {
         console.log(error);
-        classname = ERROR_BUTTON;
-        document.getElementById("boiler_btn").className = classname;
       }
     });
-    
+  }
+
+  function ac_click(id, cmd, arg) {
+    if (cmd == 'power') {
+      if (document.getElementById("ac_power_btn_" + id.toString()).className == POWER_OFF_BUTTON) {
+        arg = 'ON';
+      } else {
+        arg = 'OFF';
+      }
+    }
+    acs[id][cmd] = arg;
+    $.ajax({
+      url: "/set_status",
+      type: "PUT",
+      dataType: "json",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-CSRFToken": getCookie("csrftoken"),  // don't forget to include the 'getCookie' function
+      },
+      data: JSON.stringify({
+        "entity": "AC",
+        "id": id,
+        "status": acs[id]
+      }),
+      success: (data) => {
+        get_ac_status(id);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
+  }
+  
+  function update_ac_card(id) {
+    let classname = POWER_OFF_BUTTON;
+    if (acs[id]['power'] == 'ON'){
+      classname = POWER_ON_BUTTON;
+    }
+    document.getElementById("ac_power_btn_" + id.toString()).className = classname;
+    document.getElementById("temperature_"+id.toString()).innerHTML = acs[id]['temperature'];
+    document.getElementById("fan_"+id.toString()).innerHTML = acs[id]['fan'];
+    if (acs[id]['mode'] == 'HEAT'){
+      classname = HEAT_MODE_ICON;
+    }
+    if (acs[id]['mode'] == 'COOL'){
+      classname = COOL_MODE_ICON;
+    }
+    if (acs[id]['mode'] == 'FAN'){
+      classname = FAN_MODE_ICON;
+    }
+    document.getElementById("ACdropdownMenuButton_" + id.toString()).className = classname;
+  }
+
+  function get_ac_status(id) {
+    $.ajax({
+      url: "/get_status",
+      type: "GET",
+      data: {
+        "entity": "AC",
+        "id":      id
+      },
+      dataType: "json",
+      success: (data) => {
+        acs[id] = JSON.parse(JSON.stringify(data));
+        update_ac_card(id);
+      },
+      error: (error) => {
+        console.log(error);
+        document.getElementById("ac_power_btn_" + id.toString()).className = POWER_ERROR_BUTTON;
+      }
+    });
   }
 
   function getCookie(name) {
@@ -148,8 +278,26 @@
     return cookieValue;
   }
 
+  function init_acs() {
+    $.ajax({
+      url: "/get_ac_ids",
+      type: "GET",
+      data: {},
+      dataType: "json",
+      success: (data) => {
+        data['ac_ids'].forEach(function (item, index) {
+          get_ac_status(item);
+        });
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
     set_boiler_color();
+    init_acs();
   });
   </script>
   
