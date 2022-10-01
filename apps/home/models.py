@@ -22,3 +22,18 @@ class AC(models.Model):
         choices=AC_API.choices,
         default=AC_API.SENSIBO,
     )
+
+class Switch(models.Model):
+    def __str__(self):
+        return self.name
+
+    name = models.CharField(max_length=200)
+    api_id   = models.CharField(max_length=200)
+    class SWITCH_API(models.TextChoices):
+        EWELINK = 'Ewelink'
+
+    api = models.CharField(
+        max_length=10,
+        choices=SWITCH_API.choices,
+        default=SWITCH_API.EWELINK,
+    )

@@ -97,7 +97,6 @@ class ElectraAPI(object):
 
         for ac in get_devices_resp['data']['devices']:
             if ac["deviceTypeName"] == "A/C":
-                print(f"A/C {ac['name']} - ID {ac['id']}")
                 electra_ac: ElectraAirConditioner = ElectraAirConditioner(ac)
                 self.get_last_telemtry(electra_ac)
                 electra_ac.update_features()

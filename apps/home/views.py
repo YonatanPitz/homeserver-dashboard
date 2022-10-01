@@ -12,7 +12,7 @@ from django.template import loader, RequestContext
 from django.urls import reverse
 import json
 import time
-from .models import AC
+from .models import AC, Switch
 
 
 @login_required(login_url="/login/")
@@ -20,6 +20,7 @@ def index(request):
     context = {'segment': 'index'}
     html_template = loader.get_template('home/index.html')
     context['acs_list'] = [{'id': x.id, 'name': x.name, 'api': x.api, 'templist': [i for i in range(17,31)]} for x in AC.objects.all()]
+    context['switches_list'] = [{'id': x.id, 'name': x.name, 'api': x.api} for x in Switch.objects.all()]
     return HttpResponse(html_template.render(context, request))
 
 
@@ -77,5 +78,14 @@ def set_status(request):
         return HttpResponseBadRequest('Invalid request')
 
 @login_required(login_url="/login/")
-def get_ac_ids(request):
-    return JsonResponse({'ac_ids': [x.id for x in AC.objects.all()]})
+def get_ids(request):
+    if request.method == 'GET':
+        entity = request.GET.get('entity', 0)
+        if entity == 'AC':
+            return JsonResponse({'ac_ids': [x.id for x in AC.objects.all()]})
+        elif entity == 'switch':
+            return JsonResponse({'switch_ids': [x.id for x in Switch.objects.all()]})
+        else:
+            return HttpResponseBadRequest('Invalid request')
+    else:
+        return HttpResponseBadRequest('Invalid request')

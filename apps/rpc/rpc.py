@@ -1,7 +1,9 @@
 from os import stat
+
 from apps.rpc import boiler
-from apps.home.models import AC
+from apps.home.models import AC, Switch
 from apps.rpc.airconditioner_factory import AirConditionerFactory
+from apps.rpc.switch_factory import SwitchFactory
 
 def get_status_boiler():
     boil = boiler.BoilerInterface()
@@ -10,6 +12,10 @@ def get_status_boiler():
 def get_status(entity, id):
     if entity == "boiler":
         return get_status_boiler()
+    if entity == "switch":
+        switch_model = Switch.objects.get(id=id)
+        switch_inst = SwitchFactory(switch_model.api)
+        return switch_inst.get_switch_state(switch_model.api_id)
     if entity == "AC":
         ac_model = AC.objects.get(id=id)
         ac_inst = AirConditionerFactory(ac_model.api)
@@ -22,6 +28,10 @@ def set_status(entity, id, status):
             boil.turn_on()
         if status == 'OFF':
             boil.turn_off()
+    if entity == "switch":
+        switch_model = Switch.objects.get(id=id)
+        switch_inst = SwitchFactory(switch_model.api)
+        switch_inst.set_switch_state(switch_model.api_id, status == 'ON')
     if entity == "AC":
         ac_model = AC.objects.get(id=id)
         ac_inst = AirConditionerFactory(ac_model.api)

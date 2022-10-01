@@ -55,6 +55,31 @@
           </div>
         </div>
       </div>
+      {% for switch in switches_list %}
+      <div class="row">
+        <div class="col-xl">
+          <div class="card">
+            <div class="card-header bg-transparent">
+              <div class="row">
+                <div class="col-1">
+                  <i class="ni ni-bulb-61"></i>
+                </div>
+                <div class="col">
+                  <h5 class="h3 mb-0">{{switch.name}}</h5>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="col">
+                <button type="button" id="switch_power_btn_{{switch.id}}" class="btn btn-success w-100" onclick="switch_click({{switch.id}})">
+                  <i class="ni ni-button-power"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
       {% for ac in acs_list %}
       <div class="row">
         <div class="col-xl-8">
@@ -138,7 +163,8 @@
   const HEAT_MODE_ICON = "fa fa-sun";
   const COOL_MODE_ICON = "fa fa-snowflake";
   const FAN_MODE_ICON = "fa fa-fan";
-  let acs = {}
+  let acs = {};
+  let switches = {};
 
   function set_boiler_color() {
     $.ajax({
@@ -222,6 +248,62 @@
     });
   }
   
+  function switch_click(id) {
+    if (document.getElementById("switch_power_btn_" + id.toString()).className == POWER_OFF_BUTTON) {
+      arg = 'ON';
+    } else {
+      arg = 'OFF';
+    }
+    $.ajax({
+      url: "/set_status",
+      type: "PUT",
+      dataType: "json",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-CSRFToken": getCookie("csrftoken"),  // don't forget to include the 'getCookie' function
+      },
+      data: JSON.stringify({
+        "entity": "switch",
+        "id": id,
+        "status": arg
+      }),
+      success: (data) => {
+        get_switch_status(id);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
+  }
+
+  function update_switch_card(id, power) {
+    let classname = POWER_OFF_BUTTON;
+    if (power == 'ON'){
+      classname = POWER_ON_BUTTON;
+    }
+    document.getElementById("switch_power_btn_" + id.toString()).className = classname;
+  }
+
+  function get_switch_status(id) {
+    $.ajax({
+      url: "/get_status",
+      type: "GET",
+      data: {
+        "entity": "switch",
+        "id":      id
+      },
+      dataType: "json",
+      success: (data) => {
+        switches[id] = JSON.parse(JSON.stringify(data));
+        update_switch_card(id, data['power']);
+      },
+      error: (error) => {
+        console.log(error);
+        document.getElementById("switch_power_btn_" + id.toString()).className = POWER_ERROR_BUTTON;
+      }
+    });
+  }
+
   function update_ac_card(id) {
     let classname = POWER_OFF_BUTTON;
     if (acs[id]['power'] == 'ON'){
@@ -280,9 +362,9 @@
 
   function init_acs() {
     $.ajax({
-      url: "/get_ac_ids",
+      url: "/get_ids",
       type: "GET",
-      data: {},
+      data: {'entity': 'AC'},
       dataType: "json",
       success: (data) => {
         data['ac_ids'].forEach(function (item, index) {
@@ -295,9 +377,44 @@
     });
   }
 
+  function init_switches() {
+    $.ajax({
+      url: "/get_ids",
+      type: "GET",
+      data: {'entity': 'switch'},
+      dataType: "json",
+      success: (data) => {
+        data['switch_ids'].forEach(function (item, index) {
+          get_switch_status(item);
+        });
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
+  }
+
+  function periodic_update() {
+    for (const [key, value] of Object.entries(acs)) {
+      get_ac_status(key);
+    };
+    for (const [key, value] of Object.entries(switches)) {
+      get_switch_status(key);
+    };
+  };
+
+  setInterval(function() {
+    periodic_update();
+  }, 10000);
+
+  function init_objects() {
+    init_acs();
+    init_switches();
+  }
+  
   document.addEventListener("DOMContentLoaded", function() {
     set_boiler_color();
-    init_acs();
+    init_objects();
   });
   </script>
   
