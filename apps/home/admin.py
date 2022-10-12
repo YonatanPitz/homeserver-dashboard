@@ -4,8 +4,9 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 from django.contrib import admin
-from .models import AC, Switch
+from .models import AC, Switch, Fan
 
 # Register your models here.
 admin.site.register(AC)
 admin.site.register(Switch)
+admin.site.register(Fan)

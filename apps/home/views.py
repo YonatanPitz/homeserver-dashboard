@@ -12,7 +12,7 @@ from django.template import loader, RequestContext
 from django.urls import reverse
 import json
 import time
-from .models import AC, Switch
+from .models import AC, Switch, Fan
 
 
 @login_required(login_url="/login/")
@@ -20,9 +20,24 @@ def index(request):
     context = {'segment': 'index'}
     html_template = loader.get_template('home/index.html')
     context['acs_list'] = [{'id': x.id, 'name': x.name, 'api': x.api, 'templist': [i for i in range(17,31)]} for x in AC.objects.all()]
-    context['switches_list'] = [{'id': x.id, 'name': x.name, 'api': x.api} for x in Switch.objects.all()]
+    icon_dict = {
+        'Bulb': "ni ni-bulb-61",
+        'Coffee': "fa fa-mug-hot",
+        'Shower': "fa fa-shower",
+    }
+    context['switches_list'] = [{'id': x.id, 'name': x.name, 'api': x.api, 'icon': icon_dict[x.icon]} for x in Switch.objects.all()]
+    context['fans_list'] = [{'id': x.id, 'name': x.name} for x in Fan.objects.all()]
     return HttpResponse(html_template.render(context, request))
 
+@login_required(login_url="/login/")
+def new_routine(request):
+    print("new routine!")
+    context = {'segment': 'new_routine'}
+    html_template = loader.get_template('home/new_routine.html')
+    context['acs_list'] = [{'id': x.id, 'name': x.name} for x in AC.objects.all()]
+    context['switches_list'] = [{'id': x.id, 'name': x.name} for x in Switch.objects.all()]
+    context['fans_list'] = [{'id': x.id, 'name': x.name} for x in Fan.objects.all()]
+    return HttpResponse(html_template.render(context, request))
 
 @login_required(login_url="/login/")
 def pages(request):

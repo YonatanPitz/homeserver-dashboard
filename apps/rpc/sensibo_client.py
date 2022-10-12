@@ -62,4 +62,4 @@ if __name__ == "__main__":
     print("-" * 10, "AC State of %s" % args.deviceName, "_" * 10)
     print(ac_state)
 
-    client.pod_change_ac_state(uid, ac_state, "on", not ac_state['on']) 
+    # client.pod_change_ac_state(uid, ac_state, "on", not ac_state['on']) 

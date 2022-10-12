@@ -17,8 +17,7 @@
               <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
                 <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
                   <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i></a></li>
-                  <li class="breadcrumb-item"><a href="#">Dashboards</a></li>
-                  <li class="breadcrumb-item active" aria-current="page">Default</li>
+                  <li class="breadcrumb-item active"><a href="#">Dashboard</a></li>
                 </ol>
               </nav>
             </div>
@@ -29,32 +28,6 @@
 
     <!-- Page content -->
     <div class="container-fluid mt--6">
-      <div class="row">
-        <div class="col-xl">
-          <div class="card">
-            <div class="card-header bg-transparent">
-              <div class="row">
-                <div class="col-1">
-                  <i class="fa fa-shower"></i>
-                </div>
-                <div class="col">
-                  <h5 class="h3 mb-0">Boiler</h5>
-                </div>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="col">
-                <button type="button" id="boiler_btn" class="btn btn-danger" onclick="boiler_power_click()">
-                  <div>
-                    <i class="ni ni-button-power"></i>
-                    <!-- <span>Power</span> -->
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
       {% for switch in switches_list %}
       <div class="row">
         <div class="col-xl">
@@ -62,7 +35,7 @@
             <div class="card-header bg-transparent">
               <div class="row">
                 <div class="col-1">
-                  <i class="ni ni-bulb-61"></i>
+                  <i class="{{switch.icon}}"></i>
                 </div>
                 <div class="col">
                   <h5 class="h3 mb-0">{{switch.name}}</h5>
@@ -82,7 +55,7 @@
       {% endfor %}
       {% for ac in acs_list %}
       <div class="row">
-        <div class="col-xl-8">
+        <div class="col-xl">
           <div class="card">
             <div class="card-header bg-transparent">
               <div class="row">
@@ -143,6 +116,64 @@
         </div>
       </div>
       {% endfor %}
+      {% for fan in fans_list %}
+      <div class="row">
+        <div class="col-xl">
+          <div class="card">
+            <div class="card-header bg-transparent">
+              <div class="row">
+                <div class="col-1">
+                  <i class="fa fa-fan"></i>
+                </div>
+                <div class="col">
+                  <h5 class="h3 mb-0">{{fan.name}}</h5>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col">
+                  <button type="button" id="fan_power_btn_{{fan.id}}" class="btn btn-success w-100" onclick="fan_click({{fan.id}}, 'light', 'OFF')">
+                      <i class="ni ni-bulb-61"></i> OFF
+                  </button>
+                </div>
+                <div class="col">
+                  <button type="button" id="fan_power_btn_{{fan.id}}" class="btn btn-danger w-100" onclick="fan_click({{fan.id}}, 'light', 'ON')">
+                      <i class="ni ni-bulb-61"></i> ON
+                  </button>
+                </div>
+              </div>
+              <div class="row"><br></div>
+              <div class="row">
+                <div class="col">
+                  <center>
+                    <button class="btn btn-primary" type="button" onclick="fan_click('{{fan.id}}', 'fan', 'OFF')"><i class="fa fa-fan"></i> Off</button>
+                  </center>
+                </div>
+                <div class="col">
+                  <center>
+                    <button class="btn btn-primary" type="button" onclick="fan_click('{{fan.id}}', 'fan', 'LOW')"><i class="fa fa-fan"></i> Low</button>
+                  </center>
+                </div>
+              </div>
+              <div class="row"><br></div>
+              <div class="row">
+                <div class="col">
+                  <center>
+                    <button class="btn btn-primary" type="button" onclick="fan_click('{{fan.id}}', 'fan', 'MED')"><i class="fa fa-fan"></i> Medium</button>
+                  </center>
+                </div>
+                <div class="col">
+                  <center>
+                    <button class="btn btn-primary" type="button" onclick="fan_click('{{fan.id}}', 'fan', 'HIGH')"><i class="fa fa-fan"></i> High</button>
+                  </center>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
     </div>
 
       {% include "includes/footer.html" %}
@@ -165,57 +196,6 @@
   const FAN_MODE_ICON = "fa fa-fan";
   let acs = {};
   let switches = {};
-
-  function set_boiler_color() {
-    $.ajax({
-      url: "/get_status",
-      type: "GET",
-      data: {
-        "entity": "boiler"
-      },
-      dataType: "json",
-      success: (data) => {
-        console.log(data);
-        let classname = POWER_OFF_BUTTON;
-        if (data['power'] == 1){
-          classname = POWER_ON_BUTTON;
-        }
-        document.getElementById("boiler_btn").className = classname;
-      },
-      error: (error) => {
-        console.log(error);
-        classname = POWER_ERROR_BUTTON;
-        document.getElementById("boiler_btn").className = classname;
-      }
-    });
-  }
-
-  function boiler_power_click() {
-    status_req = 'OFF'
-    if (document.getElementById("boiler_btn").className == POWER_OFF_BUTTON) {
-      status_req = 'ON'
-    }
-    $.ajax({
-      url: "/set_status",
-      type: "PUT",
-      dataType: "json",
-      headers: {
-        "X-Requested-With": "XMLHttpRequest",
-        "X-CSRFToken": getCookie("csrftoken"),  // don't forget to include the 'getCookie' function
-      },
-      data: JSON.stringify({
-        "entity": "boiler",
-        "id": 0,
-        "status": status_req
-      }),
-      success: (data) => {
-        set_boiler_color();
-      },
-      error: (error) => {
-        console.log(error);
-      }
-    });
-  }
 
   function ac_click(id, cmd, arg) {
     if (cmd == 'power') {
@@ -241,6 +221,31 @@
       }),
       success: (data) => {
         get_ac_status(id);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
+  }
+
+  function fan_click(id, cmd, arg) {
+    let status = {}
+    status[cmd] = arg;
+    $.ajax({
+      url: "/set_status",
+      type: "PUT",
+      dataType: "json",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-CSRFToken": getCookie("csrftoken"),  // don't forget to include the 'getCookie' function
+      },
+      data: JSON.stringify({
+        "entity": "fan",
+        "id": id,
+        "cmd": cmd,
+        "status": status
+      }),
+      success: (data) => {
       },
       error: (error) => {
         console.log(error);
@@ -413,7 +418,6 @@
   }
   
   document.addEventListener("DOMContentLoaded", function() {
-    set_boiler_color();
     init_objects();
   });
   </script>

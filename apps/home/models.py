@@ -31,9 +31,28 @@ class Switch(models.Model):
     api_id   = models.CharField(max_length=200)
     class SWITCH_API(models.TextChoices):
         EWELINK = 'Ewelink'
-
+        SWITCHER = 'Switcher'
+        BOILER = 'Boiler'
     api = models.CharField(
         max_length=10,
         choices=SWITCH_API.choices,
         default=SWITCH_API.EWELINK,
     )
+
+    class SWITCH_ICON(models.TextChoices):
+        BULB = 'Bulb'
+        COFFEE = 'Coffee'
+        SHOWER = 'Shower'
+
+    icon = models.CharField(
+        max_length=10,
+        choices=SWITCH_ICON.choices,
+        default=SWITCH_ICON.BULB,
+    )
+
+class Fan(models.Model):
+    def __str__(self):
+        return self.name
+
+    name = models.CharField(max_length=200)
+    api_id = models.CharField(max_length=200)

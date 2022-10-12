@@ -24,7 +24,7 @@ class Ewelink(SwitchInterface):
             self.ewe_client._user_apikey = settings.EWELINK_API_KEY
             self.ewe_client._username = settings.EWELINK_USERNAME
                 
-    def get_switch_state(self, id : str) -> bool:
+    def get_switch_state(self, id : str):
         device = self.ewe_client.get_device(id)
         return {'power': device['params']['switch'].upper()}
 

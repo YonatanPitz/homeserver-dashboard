@@ -24,7 +24,7 @@ EWELINK_USERNAME = config('EWELINK_USERNAME')
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 # load production server from .env
-ALLOWED_HOSTS = ['rasperry', 'perryhouse.duckdns.org', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['rasperry.local', 'perryhouse.duckdns.org', 'localhost', '127.0.0.1']
 
 # Application definition
 
