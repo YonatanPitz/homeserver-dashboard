@@ -4,8 +4,8 @@ import time
 class CielFan:
     def __init__(self, id):
         self.id = id
-        self.ser = serial.Serial(port="/dev/ttyACM0", baudrate=9600, timeout=1)
-        time.sleep(0.3)
+        self.ser = serial.Serial(port = "/dev/ttyACM0", baudrate=9600, timeout=1)
+        time.sleep(2)
 
     def __del__(self):
         self.ser.close()
@@ -13,8 +13,7 @@ class CielFan:
     def send_cmd_bytes(self, cmd_bytes):
         print("sending cmd:")
         print(cmd_bytes)
-        self.ser.write(cmd_bytes)
-        time.sleep(0.3)
+        print(self.ser.write(cmd_bytes))
         print("response:")
         print(self.ser.read(80))
         self.ser.close()
@@ -42,3 +41,11 @@ class CielFan:
 if __name__ == "__main__":
     ciel = CielFan(id="0xe7d")
     ciel.set_light("ON")
+    # ciel.set_light("OFF")
+    # ciel.send_cmd_bytes(b'15192336')
+    # ser = serial.Serial(port="/dev/ttyACM0", baudrate=9600, timeout=1)
+    # time.sleep(5)
+    # print(ser.write(b'15192336'))
+    # time.sleep(5)
+    # print(ser.read(80))
+    # ser.close()
