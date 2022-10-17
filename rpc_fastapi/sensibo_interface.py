@@ -1,16 +1,16 @@
-from apps.rpc.airconditioner_intf import AirConditionerInterface
-from django.conf import settings
-from apps.rpc.sensibo_client import SensiboClientAPI
+from airconditioner_intf import AirConditionerInterface
+from sensibo_client import SensiboClientAPI
+from decouple import config
+import rpc_server
 
-# power: ON, OFF
-# fan: Auto, Low, Med, High
-# mode: HEAT, COOL, FAN
-# temperature: int (17-30)
+class SensiboAirConditioner():
+    def __init__(self):
+        self.client = SensiboClientAPI(config('SENSIBO_KEY'))
 
-class SensiboAirConditioner(AirConditionerInterface):
+class SensiboInterface(AirConditionerInterface):
     def __init__(self):
         super().__init__()
-        self.client = SensiboClientAPI(settings.SENSIBO_KEY)
+        self.client = rpc_server.app.sensibo.client
     
     def get_ac_state(self, name : str) -> dict:
         devices = self.client.devices()

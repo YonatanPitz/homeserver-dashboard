@@ -1,6 +1,4 @@
-from django.conf import settings
-from apps.rpc.switch_intf import SwitchInterface
-
+from switch_intf import SwitchInterface
 import socket
 import time
 import time

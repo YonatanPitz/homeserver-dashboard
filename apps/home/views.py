@@ -3,15 +3,14 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 
-from os import stat
-from apps.rpc import rpc
 from django import template
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, HttpResponseBadRequest
-from django.template import loader, RequestContext
+from django.template import loader
 from django.urls import reverse
 import json
 import time
+import requests
 from .models import AC, Switch, Fan
 
 
@@ -71,7 +70,15 @@ def get_status(request):
     id = request.GET.get('id', 0)
     if is_ajax:
         if request.method == 'GET':
-            entity_status = rpc.get_status(entity, id)
+            entity_status = None
+            # entity_status = client.call_rpc('get_status', entity, id)
+            # entity_status = {'Test': 'Test'}
+            if entity == 'AC':
+                ac_model = AC.objects.get(id=id)
+                entity_status = requests.get(f'http://127.0.0.1:8001/acs/{ac_model.api}/{ac_model.name}').json()
+            if entity == 'switch':
+                switch_model = Switch.objects.get(id=id)
+                entity_status = requests.get(f'http://127.0.0.1:8001/switches/{switch_model.api}/{switch_model.api_id}').json()
             if entity_status == None:
                 return HttpResponseBadRequest('Invalid request')
             else:        
@@ -86,8 +93,19 @@ def set_status(request):
     if is_ajax:
         if request.method == 'PUT':
             data = json.load(request)
-            rpc.set_status(data['entity'], data['id'], data['status'])
-            time.sleep(0.5)
+            entity = data['entity']
+            id = data['id']
+            status = data['status']
+            headers = {'content-type' : 'application/json'}
+            if entity == 'AC':
+                ac_model = AC.objects.get(id=id)
+                requests.put(f'http://127.0.0.1:8001/acs/{ac_model.api}/{ac_model.name}', json=status, headers=headers)
+            if entity == 'switch':
+                switch_model = Switch.objects.get(id=id)
+                requests.put(f'http://127.0.0.1:8001/switches/{switch_model.api}/{switch_model.api_id}', json=status, headers=headers)
+            if entity == 'fan':
+                fan_model = Fan.objects.get(id=id)
+                requests.put(f'http://127.0.0.1:8001/fans/{fan_model.api_id}', json=status, headers=headers)
             return JsonResponse({'rpc_status': 'OK'})
     else:
         return HttpResponseBadRequest('Invalid request')
@@ -102,5 +120,12 @@ def get_ids(request):
             return JsonResponse({'switch_ids': [x.id for x in Switch.objects.all()]})
         else:
             return HttpResponseBadRequest('Invalid request')
+    else:
+        return HttpResponseBadRequest('Invalid request')
+
+@login_required(login_url="/login/")
+def create_routine(request):
+    if request.method == 'POST':
+        print(request)
     else:
         return HttpResponseBadRequest('Invalid request')

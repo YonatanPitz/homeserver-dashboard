@@ -25,7 +25,7 @@
   
   <!-- Page content -->
   <div class="container-fluid mt--6">
-    <form>
+    <form action="/create_routine/" method="post">
       <div class="row">
         <div class="col">
           <div class="form-group">
@@ -34,56 +34,75 @@
         </div>
       </div>
       <div class="row"></div>
-      <div class="row">
-        <div class="col">
-          <div class="form-group">
-            <label for="Entity">Entity</label>
-            <select class="form-control" id="Entity" onchange='selectEntity(this.value)'>
-              <optgroup label="Switch">
-                {% for switch in switches_list %}
-                <option value="Switch {{switch.id}}">{{switch.name}}</option>
-                {% endfor %}
-              </optgroup>
-              <optgroup label="AC">
-                {% for ac in acs_list %}
-                <option value="AC {{ac.id}}">{{ac.name}}</option>
-                {% endfor %}
-              </optgroup>
-              <optgroup label="Fan"></optgroup>
-                {% for fan in fans_list %}
-                <option value="Fan {{fan.id}}">{{fan.name}}</option>
-                {% endfor %}
-              </optgroup>
-            </select>
+      <div class="card">
+        <!-- <div class="card-header bg-transparent"></div> -->
+        <div class="card-body" id="ActionCard1">
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
+                <select class="form-control" id="Entity" onchange='selectEntity(this.value, 1)'>
+                  <option disabled selected value>-- Select An Entity --</option>
+                  <optgroup label="Switch">
+                    {% for switch in switches_list %}
+                    <option value="Switch {{switch.id}}">{{switch.name}}</option>
+                    {% endfor %}
+                  </optgroup>
+                  <optgroup label="AC">
+                    {% for ac in acs_list %}
+                    <option value="AC {{ac.id}}">{{ac.name}}</option>
+                    {% endfor %}
+                  </optgroup>
+                  <optgroup label="Fan"></optgroup>
+                    {% for fan in fans_list %}
+                    <option value="Fan {{fan.id}}">{{fan.name}}</option>
+                    {% endfor %}
+                  </optgroup>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-6">
-          <div class="form-group has-success">
-            <input type="text" placeholder="Success" class="form-control is-valid" />
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="form-group has-danger">
-            <input type="email" placeholder="Error Input" class="form-control is-invalid" />
-          </div>
-        </div>
-      </div>
-      <input type="submit" class="btn btn-default">
-      <!-- <button type="button" class="btn btn-default">Submit</button> -->
+      <div class="row"></div>
+      <input type="submit" class="btn btn-default" value="Create">
     </form>
     {% include "includes/footer.html" %}
-
   </div>
-
 {% endblock content %}
 
 <!-- Specific JS goes HERE --> 
 {% block javascripts %}
 <script>
-  function selectEntity(entity) {
-    console.log(entity);
-  }
+  function selectEntity(entity, card) {
+    const entityType = entity.split(' ')[0];
+    const entityId = entity.split(' ')[1];
+    if (entityType == 'Switch') {
+      addSwitch(card);
+    };
+  };
+
+  function addSwitch(card) {
+    document.getElementById("ActionCard" + card.toString()).innerHTML += 
+    `<div class="row"></div>
+    <div class="row">
+      <div class="col">
+        <div class="form-group">
+          <select class="form-control" id="Power">
+            <option disabled selected value>-- Power --</option>
+            <option>ON</option>
+            <option>OFF</option>
+          </select>
+        </div>
+      </div>
+    </div>`
+  };
+
+  function addAction() {
+    var added = document.createElement("div");
+    document.getElementById("ID").appendChild(added);
+    added.setAttribute("id", "Task " + document.getElementById("ID").childElementCount);
+    added.appendChild(document.createElement("input"));
+    added.appendChild(document.createElement("br"));
+  };
 </script>
 {% endblock javascripts %}

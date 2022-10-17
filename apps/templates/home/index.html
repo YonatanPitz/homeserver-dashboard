@@ -44,7 +44,7 @@
             </div>
             <div class="card-body">
               <div class="col">
-                <button type="button" id="switch_power_btn_{{switch.id}}" class="btn btn-success w-100" onclick="switch_click({{switch.id}})">
+                <button type="button" id="switch_power_btn_{{switch.id}}" class="btn btn-danger w-100" onclick="switch_click({{switch.id}})">
                   <i class="ni ni-button-power"></i>
                 </button>
               </div>
@@ -133,12 +133,12 @@
             <div class="card-body">
               <div class="row">
                 <div class="col">
-                  <button type="button" id="fan_power_btn_{{fan.id}}" class="btn btn-success w-100" onclick="fan_click({{fan.id}}, 'light', 'OFF')">
+                  <button type="button" id="fan_power_btn_{{fan.id}}" class="btn btn-danger w-100" onclick="fan_click({{fan.id}}, 'light', 'OFF')">
                       <i class="ni ni-bulb-61"></i> OFF
                   </button>
                 </div>
                 <div class="col">
-                  <button type="button" id="fan_power_btn_{{fan.id}}" class="btn btn-danger w-100" onclick="fan_click({{fan.id}}, 'light', 'ON')">
+                  <button type="button" id="fan_power_btn_{{fan.id}}" class="btn btn-success w-100" onclick="fan_click({{fan.id}}, 'light', 'ON')">
                       <i class="ni ni-bulb-61"></i> ON
                   </button>
                 </div>
@@ -188,8 +188,8 @@
   <script src="/static/assets/vendor/chart.js/dist/Chart.min.js"></script>
   <script src="/static/assets/vendor/chart.js/dist/Chart.extension.js"></script>
   <script>
-  const POWER_ON_BUTTON = "btn btn-danger w-100";
-  const POWER_OFF_BUTTON = "btn btn-success w-100";
+  const POWER_ON_BUTTON = "btn btn-success w-100";
+  const POWER_OFF_BUTTON = "btn btn-danger w-100";
   const POWER_ERROR_BUTTON = "btn btn-secondary w-100";
   const HEAT_MODE_ICON = "fa fa-sun";
   const COOL_MODE_ICON = "fa fa-snowflake";
@@ -255,10 +255,11 @@
   
   function switch_click(id) {
     if (document.getElementById("switch_power_btn_" + id.toString()).className == POWER_OFF_BUTTON) {
-      arg = 'ON';
+      arg = {'power': 'ON'};
     } else {
-      arg = 'OFF';
+      arg = {'power': 'OFF'};
     }
+    status = 
     $.ajax({
       url: "/set_status",
       type: "PUT",

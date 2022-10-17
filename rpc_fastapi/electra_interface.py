@@ -1,12 +1,10 @@
-from apps.rpc.airconditioner_intf import AirConditionerInterface
-from apps.rpc.electra import ElectraAPI
-from .models import ElectraAPIModel
-from django.utils import timezone
-from django.conf import settings
+from airconditioner_intf import AirConditionerInterface
+from electra import ElectraAPI
+from decouple import config
+import datetime
+import rpc_server
 
-SID_EXPIRATION = timezone.timedelta(hours=1)
-
-# TODO: can import UID retrieval time with cache in DB
+SID_EXPIRATION = datetime.timedelta(hours=1)
 
 class ElectraAirConditioner(AirConditionerInterface):
     def __init__(self):
@@ -14,17 +12,15 @@ class ElectraAirConditioner(AirConditionerInterface):
         self.electra_api = self.get_valid_electra_api()
     
     def electra_update_sid(self, sid):
-        ElectraAPIModel.objects.all().delete()
-        eapi = ElectraAPIModel(session_id=sid, ts=timezone.now())
-        eapi.save()
+        rpc_server.app.electra_session.sid = sid
+        rpc_server.app.electra_session.ts = datetime.datetime.now()
 
     def electra_validate_token(self, electra_api):
-        electra_api.validate_token(settings.ELECTRA_IMEI, settings.ELECTRA_TOKEN)
+        electra_api.validate_token(config('ELECTRA_IMEI'), config('ELECTRA_TOKEN'))
         self.electra_update_sid(electra_api.sid)
 
     def electra_set_sid(self, electra_api):
-        eapi = ElectraAPIModel.objects.all()[0]
-        electra_api.sid = eapi.session_id
+        electra_api.sid = rpc_server.app.electra_session.sid
 
     def get_device_uid(self, name):
         ac_dict = self.electra_api.get_devices()
@@ -35,12 +31,11 @@ class ElectraAirConditioner(AirConditionerInterface):
     
     def get_valid_electra_api(self):
         electra_api = ElectraAPI()
-        query = ElectraAPIModel.objects.all()
-        if len(query) == 0:
+        if rpc_server.app.electra_session.sid == 0:
             print("No SID exists, creating a new one")
             self.electra_validate_token(electra_api)
         else:
-            if (timezone.now() - query[0].ts) > SID_EXPIRATION:
+            if (datetime.datetime.now() - rpc_server.app.electra_session.ts) > SID_EXPIRATION:
                 print("SID expired. creating a new one")
                 self.electra_validate_token(electra_api)
             else:

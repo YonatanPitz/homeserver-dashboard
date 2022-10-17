@@ -1,22 +1,25 @@
-import serial
-import time
+# import time
+# import serial
+import rpc_server
 
 class CielFan:
     def __init__(self, id):
+        # self.serial = serial.Serial(port="/dev/ttyACM1", baudrate=9600, timeout=1)
         self.id = id
-        self.ser = serial.Serial(port = "/dev/ttyACM0", baudrate=9600, timeout=1)
-        time.sleep(2)
+        # time.sleep(5)
 
-    def __del__(self):
-        self.ser.close()
+    # def __del__(self):
+        # self.serial.close()
     
     def send_cmd_bytes(self, cmd_bytes):
-        print("sending cmd:")
-        print(cmd_bytes)
-        print(self.ser.write(cmd_bytes))
-        print("response:")
-        print(self.ser.read(80))
-        self.ser.close()
+        # print("sending cmd:")
+        # print(cmd_bytes)
+        rpc_server.app.serial.write(cmd_bytes)
+        # print(self.serial.write(cmd_bytes))
+        # time.sleep(2)
+        # print("response:")
+        rpc_server.app.serial.read(80)
+        # print(self.serial.read(80))
 
     def send_cmd(self, cmd):
         cmd_bytes = str(int(self.id+cmd, 16)).encode()

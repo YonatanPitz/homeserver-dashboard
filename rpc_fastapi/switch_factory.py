@@ -1,11 +1,11 @@
-from apps.rpc.ewelink_interface import Ewelink
-from apps.rpc.switcher_interface import Switcher
-from apps.rpc.boiler_interface import Boiler
+from ewelink_interface import EwelinkInterface
+from switcher_interface import Switcher
+from boiler_interface import Boiler
 
 def SwitchFactory(api):
     """Factory Method"""
     switch = {
-        "Ewelink": Ewelink,
+        "Ewelink": EwelinkInterface,
         "Switcher": Switcher,
         "Boiler": Boiler,
     }

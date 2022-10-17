@@ -13,12 +13,6 @@ CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
-ELECTRA_IMEI = config('ELECTRA_IMEI')
-ELECTRA_TOKEN = config('ELECTRA_TOKEN')
-SENSIBO_KEY = config('SENSIBO_KEY')
-EWELINK_PASSWORD = config('EWELINK_PASSWORD')
-EWELINK_API_KEY = config('EWELINK_API_KEY')
-EWELINK_USERNAME = config('EWELINK_USERNAME')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
@@ -35,7 +29,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'apps.rpc',
     'apps.home'  # Enable the inner home (home)
 ]
 
