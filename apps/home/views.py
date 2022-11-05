@@ -5,14 +5,14 @@ Copyright (c) 2019 - present AppSeed.us
 
 from django import template
 from django.contrib.auth.decorators import login_required
+from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, HttpResponseBadRequest
 from django.template import loader
 from django.urls import reverse
 import json
 import time
 import requests
-from .models import AC, Switch, Fan
-
+from .models import AC, Switch, Fan, Routine
 
 @login_required(login_url="/login/")
 def index(request):
@@ -30,7 +30,14 @@ def index(request):
 
 @login_required(login_url="/login/")
 def new_routine(request):
-    print("new routine!")
+    if request.method == 'POST':
+        print(request.POST['RoutineName'])
+        print(request.POST['NumOfActions'])
+    # else:
+        # form = RoutineForm()
+        # formset = formset_factory(ActionForm)
+        # formset = ActionFormSet(queryset=Action.objects.none())
+        # pass
     context = {'segment': 'new_routine'}
     html_template = loader.get_template('home/new_routine.html')
     context['acs_list'] = [{'id': x.id, 'name': x.name} for x in AC.objects.all()]
@@ -38,6 +45,26 @@ def new_routine(request):
     context['fans_list'] = [{'id': x.id, 'name': x.name} for x in Fan.objects.all()]
     return HttpResponse(html_template.render(context, request))
 
+@login_required(login_url="/login/")
+def routines(request):
+    if request.method == 'GET':
+        context = {'segment': 'routines'}
+        html_template = loader.get_template('home/routines.html')
+        context['routines'] = []
+        for routine in Routine.objects.all():
+            routine_dict = {'id': routine.id, 'name': routine.name, 'actions': []}
+            for action in routine.actions:
+                action_dict = {'state': action['state']}
+                if action['entity'] == 'switch':
+                    action_dict['entity_name'] = Switch.objects.get(id=action['id']).name
+                if action['entity'] == 'AC':
+                    action_dict['entity_name'] = AC.objects.get(id=action['id']).name
+                if action['entity'] == 'fan':
+                    action_dict['entity_name'] = Fan.objects.get(id=action['id']).name
+                routine_dict['actions'].append(action_dict)
+            context['routines'].append(routine_dict)
+        return HttpResponse(html_template.render(context, request))
+        
 @login_required(login_url="/login/")
 def pages(request):
     context = {}
@@ -120,12 +147,5 @@ def get_ids(request):
             return JsonResponse({'switch_ids': [x.id for x in Switch.objects.all()]})
         else:
             return HttpResponseBadRequest('Invalid request')
-    else:
-        return HttpResponseBadRequest('Invalid request')
-
-@login_required(login_url="/login/")
-def create_routine(request):
-    if request.method == 'POST':
-        print(request)
     else:
         return HttpResponseBadRequest('Invalid request')

@@ -11,8 +11,8 @@ urlpatterns = [
     # The home page
     path('', views.index, name='home'),
     # Create new routing page
-    path('new_routine.html', views.new_routine, name='new_routine'),
-    path('create_routine', views.create_routine, name='create_routine'),
+    path('new_routine', views.new_routine, name='new_routine'),
+    path('routines', views.routines, name='routines'),
     # RPC calls from ajax
     path('get_status', views.get_status, name='get_status'),
     path('set_status', views.set_status, name='set_status'),

@@ -70,7 +70,7 @@
             <div class="card-body">
               <div class="row">
                 <div class="col">
-                  <button type="button" id="ac_power_btn_{{ac.id}}" class="btn btn-success w-100" onclick="ac_click({{ac.id}}, 'power', 0)">
+                  <button type="button" id="ac_power_btn_{{ac.id}}" class="btn btn-danger w-100" onclick="ac_click({{ac.id}}, 'power', 0)">
                       <i class="ni ni-button-power"></i>
                   </button>
                 </div>
@@ -210,6 +210,7 @@
       url: "/set_status",
       type: "PUT",
       dataType: "json",
+      contentType: "application/json",
       headers: {
         "X-Requested-With": "XMLHttpRequest",
         "X-CSRFToken": getCookie("csrftoken"),  // don't forget to include the 'getCookie' function
@@ -235,6 +236,7 @@
       url: "/set_status",
       type: "PUT",
       dataType: "json",
+      contentType: "application/json",
       headers: {
         "X-Requested-With": "XMLHttpRequest",
         "X-CSRFToken": getCookie("csrftoken"),  // don't forget to include the 'getCookie' function
@@ -263,6 +265,7 @@
     $.ajax({
       url: "/set_status",
       type: "PUT",
+      contentType: "application/json",
       dataType: "json",
       headers: {
         "X-Requested-With": "XMLHttpRequest",
@@ -299,6 +302,7 @@
         "id":      id
       },
       dataType: "json",
+      contentType: "application/json",
       success: (data) => {
         switches[id] = JSON.parse(JSON.stringify(data));
         update_switch_card(id, data['power']);
@@ -339,6 +343,7 @@
         "id":      id
       },
       dataType: "json",
+      contentType: "application/json",
       success: (data) => {
         acs[id] = JSON.parse(JSON.stringify(data));
         update_ac_card(id);
@@ -372,6 +377,7 @@
       type: "GET",
       data: {'entity': 'AC'},
       dataType: "json",
+      contentType: "application/json",
       success: (data) => {
         data['ac_ids'].forEach(function (item, index) {
           get_ac_status(item);
@@ -389,6 +395,7 @@
       type: "GET",
       data: {'entity': 'switch'},
       dataType: "json",
+      contentType: "application/json",
       success: (data) => {
         data['switch_ids'].forEach(function (item, index) {
           get_switch_status(item);

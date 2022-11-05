@@ -56,3 +56,28 @@ class Fan(models.Model):
 
     name = models.CharField(max_length=200)
     api_id = models.CharField(max_length=200)
+
+class Routine(models.Model):
+    def __str__(self):
+        return self.name
+    
+    name = models.CharField(max_length=200)
+    actions = models.JSONField(default=[])
+
+# class Action(models.Model):
+#     class ENTITY_TYPE(models.TextChoices):
+#         SWITCH = 'Switch'
+#         AC = 'AC'
+#         FAN = 'Fan'
+
+#     entity_type = models.CharField(
+#         max_length=10,
+#         choices=ENTITY_TYPE.choices,
+#         default=ENTITY_TYPE.SWITCH,
+#     )
+
+#     api_id = models.CharField(max_length=200)
+#     # state = models.JSONField(default=[])
+    
+#     def __str__(self):
+#     	return f"{self.entity_type}: {self.api_id}"

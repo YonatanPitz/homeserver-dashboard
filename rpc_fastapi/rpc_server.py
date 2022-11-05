@@ -37,27 +37,31 @@ class ElectraSession:
 
 app = FastAPI()
 app.electra_session = ElectraSession()
-app.serial = serial.Serial(port='/dev/ttyACM1', baudrate=9600, timeout=1)
+app.serial = serial.Serial(port='/dev/ttyACM0', baudrate=9600, timeout=1)
 app.ewelink = Ewelink()
 app.sensibo = SensiboAirConditioner()
 
 @app.get("/acs/{api}/{id}")
 async def get_ac_state(api: ACApi, id: str):
+    # return {'power': 'OFF', 'temperature': 18, 'fan': "Low", 'mode': "COOL"}
     ac_inst = AirConditionerFactory(api)
     return ac_inst.get_ac_state(id)
     
 @app.put("/acs/{api}/{id}")
 async def set_ac_state(api: ACApi, id: str, request: ACRequest):
+    # pass
     ac_inst = AirConditionerFactory(api)
     ac_inst.set_ac_state(id, request.dict())
 
 @app.get("/switches/{api}/{id}")
 async def get_switch_state(api: SwitchApi, id: str):
+    # return {'power': 'OFF'}
     switch_inst = SwitchFactory(api)
     return switch_inst.get_switch_state(id)
 
 @app.put("/switches/{api}/{id}")
 async def set_switch_state(api: SwitchApi, id: str, request: SwitchRequest):
+    # pass
     switch_inst = SwitchFactory(api)
     switch_inst.set_switch_state(id, request.power == 'ON')
 

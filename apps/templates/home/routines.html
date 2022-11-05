@@ -18,7 +18,7 @@
             </nav>
           </div>
           <div class="col-lg-6 col-5 text-right">
-            <a href="/new_routine.html" class="btn btn-sm btn-neutral">New</a>
+            <a href="/new_routine" class="btn btn-sm btn-neutral">New</a>
           </div>
         </div>
       </div>
@@ -45,6 +45,7 @@
                 </tr>
               </thead>
               <tbody class="list">
+                {% for routine in routines %}
                 <tr>
                   <th scope="row">
                     <div class="media align-items-center">
@@ -52,22 +53,21 @@
                         <i class="ni ni-button-play"></i>
                       </a>
                       <div class="media-body">
-                        <span class="name mb-0 text-sm">Turn off all lights</span>
+                        <span class="name mb-0 text-sm">{{ routine.name }}</span>
                       </div>
                     </div>
                   </th>
                   <td class="actions">
                     <ul>
-                      <li>Living Room Light:
+                      {% for action in routine.actions %}
+                      <li> {{ action.entity_name }}:
                         <ul>
-                          <li>Power: OFF</li>
+                          {% for key, value in action.state.items %}
+                          <li>{{key}}: {{value}}</li>
+                          {% endfor %}
                         </ul>
                       </li>
-                      <li>Dinning Room Light:
-                        <ul>
-                          <li>Power: OFF</li>
-                        </ul>
-                      </li>
+                      {% endfor %}
                     </ul>
                   </td>
                   <td class="text-right">
@@ -82,6 +82,7 @@
                     </div>
                   </td>
                 </tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>

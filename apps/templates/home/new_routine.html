@@ -13,7 +13,7 @@
             <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
               <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
                 <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
-                <li class="breadcrumb-item"><a href="/routines.html">Routines</a></li>
+                <li class="breadcrumb-item"><a href="/routines">Routines</a></li>
                 <li class="breadcrumb-item active" aria-current="page">New Routine</li>
               </ol>
             </nav>
@@ -25,46 +25,72 @@
   
   <!-- Page content -->
   <div class="container-fluid mt--6">
-    <form action="/create_routine/" method="post">
+    <form action="/new_routine" method="post">
+      {% csrf_token %}
+      <input type="hidden" value="1" name="NumOfActions" id="NumOfActions">
       <div class="row">
         <div class="col">
           <div class="form-group">
-            <input type="text" class="form-control" id="RoutineNameInput" placeholder="Routine Name">
+            <input type="text" class="form-control" id="RoutineNameInput" placeholder="Routine Name" name="RoutineName">
           </div>
         </div>
       </div>
       <div class="row"></div>
-      <div class="card">
-        <!-- <div class="card-header bg-transparent"></div> -->
-        <div class="card-body" id="ActionCard1">
-          <div class="row">
-            <div class="col">
-              <div class="form-group">
-                <select class="form-control" id="Entity" onchange='selectEntity(this.value, 1)'>
-                  <option disabled selected value>-- Select An Entity --</option>
-                  <optgroup label="Switch">
-                    {% for switch in switches_list %}
-                    <option value="Switch {{switch.id}}">{{switch.name}}</option>
-                    {% endfor %}
-                  </optgroup>
-                  <optgroup label="AC">
-                    {% for ac in acs_list %}
-                    <option value="AC {{ac.id}}">{{ac.name}}</option>
-                    {% endfor %}
-                  </optgroup>
-                  <optgroup label="Fan"></optgroup>
-                    {% for fan in fans_list %}
-                    <option value="Fan {{fan.id}}">{{fan.name}}</option>
-                    {% endfor %}
-                  </optgroup>
-                </select>
+      <div class="container" id="ActionsContainer">
+        <div class="card" id="ActionCard-1">
+          <div class="card-header bg-transparent">
+            <div class="row">
+              <div class="col">
+                <h5 class="h3 mb-0">Action-1</h5>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="container" id="Action-1">
+              <div class="row">
+                <div class="col">
+                  <div class="form-group">
+                    <label for="Entity-1">Entity:</label>
+                    <select class="form-control" id="Entity-1" onchange='selectEntity(this.value, this.id)' name="Entity-1">
+                      <option value="None">-- Select An Entity --</option>
+                      <optgroup label="Switch">
+                        {% for switch in switches_list %}
+                        <option value="switch {{switch.id}}">{{switch.name}}</option>
+                        {% endfor %}
+                      </optgroup>
+                      <optgroup label="AC">
+                        {% for ac in acs_list %}
+                        <option value="AC {{ac.id}}">{{ac.name}}</option>
+                        {% endfor %}
+                      </optgroup>
+                      <optgroup label="Fan"></optgroup>
+                        {% for fan in fans_list %}
+                        <option value="fan {{fan.id}}">{{fan.name}}</option>
+                        {% endfor %}
+                      </optgroup>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="container" id="StateContainer-1">
               </div>
             </div>
           </div>
         </div>
       </div>
       <div class="row"></div>
-      <input type="submit" class="btn btn-default" value="Create">
+      <div class="row"></div>
+      <div class="row">
+        <div class="col-4">
+          <input type="submit" class="btn btn-default" value="Create">
+        </div>
+        <div class="col-4">
+          <button type="button" id="addActionBtn" class="btn btn-default" onclick="addAction()">Add Action</button>
+        </div>
+        <div class="col-4">
+          <button type="button" id="delAction" class="btn btn-default" onclick="deleteAction()">Delete Action</button>
+        </div>
+      </div>
     </form>
     {% include "includes/footer.html" %}
   </div>
@@ -73,36 +99,163 @@
 <!-- Specific JS goes HERE --> 
 {% block javascripts %}
 <script>
-  function selectEntity(entity, card) {
-    const entityType = entity.split(' ')[0];
-    const entityId = entity.split(' ')[1];
-    if (entityType == 'Switch') {
-      addSwitch(card);
-    };
+  function addAction() {
+    let new_card =  document.getElementById("ActionCard-1").cloneNode(true);
+    let ActionNum = parseInt(document.getElementById("NumOfActions").value) + 1;
+    document.getElementById("NumOfActions").value = ActionNum;
+    new_card.id = "ActionCard-" + ActionNum.toString();
+    new_card.innerHTML = new_card.innerHTML.replace(RegExp(`-1`,'g'), `-${ActionNum}`);
+    document.getElementById("ActionsContainer").appendChild(new_card);
+    selectEntity("None", ActionNum);
   };
 
-  function addSwitch(card) {
-    document.getElementById("ActionCard" + card.toString()).innerHTML += 
+  function selectEntity(entity, entity_id) {
+    let card = parseInt(entity_id.split('-')[1]);
+    const entityType = entity.split(' ')[0];
+    const entityId = entity.split(' ')[1];
+    if (entityType == 'switch') {
+      setSwitch(card);
+    };
+    if (entityType == 'fan') {
+      setFan(card);
+    };
+    if (entityType == 'AC') {
+      setAC(card);
+    };
+    if (entityType == 'None') {
+      setNone(card);
+    }
+    document.getElementById("Entity-" + card.toString()).value = entity;
+  }
+
+  function setNone(card) {
+    document.getElementById("StateContainer-" + card.toString()).innerHTML = '';
+  }
+  
+  function setSwitch(card) {
+    document.getElementById("StateContainer-" + card.toString()).innerHTML = 
     `<div class="row"></div>
     <div class="row">
       <div class="col">
         <div class="form-group">
-          <select class="form-control" id="Power">
-            <option disabled selected value>-- Power --</option>
+          <label for="power">Power:</label>
+          <select class="form-control" id="power${card}">
             <option>ON</option>
             <option>OFF</option>
           </select>
         </div>
       </div>
     </div>`
-  };
+  }
 
-  function addAction() {
-    var added = document.createElement("div");
-    document.getElementById("ID").appendChild(added);
-    added.setAttribute("id", "Task " + document.getElementById("ID").childElementCount);
-    added.appendChild(document.createElement("input"));
-    added.appendChild(document.createElement("br"));
-  };
+  function setFan(card) {
+    document.getElementById("StateContainer-" + card.toString()).innerHTML = 
+    `<div class="row"></div>
+    <div class="row">
+      <div class="col">
+        <div class="form-group">
+          <label for="light">Light:</label>
+          <select class="form-control" id="light${card}">
+            <option value="None">No change</option>
+            <option>ON</option>
+            <option>OFF</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row"></div>
+    <div class="row">
+      <div class="col">
+        <div class="form-group">
+          <label for="fan">Fan:</label>
+          <select class="form-control" id="fan${card}">
+            <option value="None">No change</option>
+            <option>Low</option>
+            <option>Med</option>
+            <option>High</option>
+          </select>
+        </div>
+      </div>
+    </div>`
+  }
+
+  function setAC(card) {
+    document.getElementById("StateContainer-" + card.toString()).innerHTML = 
+    `<div class="row"></div>
+    <div class="row">
+      <div class="col">
+        <div class="form-group">
+          <label for="power">Power:</label>
+          <select class="form-control" id="power${card}">
+            <option>ON</option>
+            <option>OFF</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row"></div>
+    <div class="row">
+      <div class="col">
+        <div class="form-group">
+          <label for="mode">Mode:</label>
+          <select class="form-control" id="mode${card}">
+            <option>Cool</option>
+            <option>Heat</option>
+            <option>Fan</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row"></div>
+    <div class="row">
+      <div class="col">
+        <div class="form-group">
+          <label for="temp">Temperature:</label>
+          <select class="form-control" id="temp${card}">
+            <option>16</option>
+            <option>17</option>
+            <option>18</option>
+            <option>19</option>
+            <option>20</option>
+            <option>21</option>
+            <option>22</option>
+            <option>23</option>
+            <option>24</option>
+            <option>25</option>
+            <option>26</option>
+            <option>27</option>
+            <option>28</option>
+            <option>29</option>
+            <option>30</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row"></div>
+    <div class="row">
+      <div class="col">
+        <div class="form-group">
+          <label for="fan">Fan:</label>
+          <select class="form-control" id="fan${card}">
+            <option value="None">No change</option>
+            <option>Low</option>
+            <option>Low</option>
+            <option>Low</option>
+          </select>
+        </div>
+      </div>
+    </div>`
+  }
+
+  function deleteAction() {
+    let ActionNum = parseInt(document.getElementById("NumOfActions").value) - 1;
+    if (ActionNum > 0) {
+      document.getElementById("NumOfActions").value = ActionNum;
+      let select = document.getElementById("ActionsContainer");
+      select.removeChild(select.lastChild);
+    } else {
+      selectEntity("None", 1);
+    }
+  }
 </script>
 {% endblock javascripts %}
