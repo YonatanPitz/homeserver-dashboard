@@ -98,14 +98,12 @@ def get_status(request):
     if is_ajax:
         if request.method == 'GET':
             entity_status = None
-            # entity_status = client.call_rpc('get_status', entity, id)
-            # entity_status = {'Test': 'Test'}
             if entity == 'AC':
                 ac_model = AC.objects.get(id=id)
-                entity_status = requests.get(f'http://127.0.0.1:8001/acs/{ac_model.api}/{ac_model.name}').json()
+                entity_status = {'power': ac_model.power, 'temperature': ac_model.temperature, 'mode': ac_model.mode, 'fan': ac_model.fan}
             if entity == 'switch':
                 switch_model = Switch.objects.get(id=id)
-                entity_status = requests.get(f'http://127.0.0.1:8001/switches/{switch_model.api}/{switch_model.api_id}').json()
+                entity_status = {'power': switch_model.power}
             if entity_status == None:
                 return HttpResponseBadRequest('Invalid request')
             else:        
