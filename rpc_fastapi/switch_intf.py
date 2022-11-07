@@ -5,5 +5,8 @@ class SwitchInterface:
     def set_switch_state(self, id : str, state : bool):
         pass
 
-    def get_switch_state(self, id : str) -> bool:
+    def get_switch_state(self, id : str) -> dict:
+        pass
+
+    def get_all_switch_states(self) -> dict:
         pass

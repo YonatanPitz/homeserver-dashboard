@@ -63,4 +63,18 @@ class ElectraAirConditioner(AirConditionerInterface):
         ac.set_mode(state['mode'])
         ac.set_temperature(state['temperature'])
         ac.set_fan_speed(state['fan'].upper())
-        self.electra_api.set_state(ac) 
+        self.electra_api.set_state(ac)
+    
+    def get_all_ac_states(self) -> dict:
+        resp = {}
+        devices = self.electra_api.get_devices()
+        for name, ac in devices.items():
+            resp[name] = {
+                'power': 'OFF',
+                'temperature': ac.get_temperature(),
+                'fan': ac.get_fan_speed().capitalize(),
+                'mode': ac.get_mode()
+            }
+            if ac.is_on():
+                resp[name]['power'] = 'ON'
+        return resp

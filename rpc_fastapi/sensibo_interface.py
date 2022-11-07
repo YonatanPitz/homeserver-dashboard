@@ -37,9 +37,23 @@ class SensiboInterface(AirConditionerInterface):
             "High": "high",
             "Auto": "auto"
         }
-
         ac_state['on'] = (state['power'] == 'ON')
         ac_state['mode'] = state['mode'].lower()
         ac_state['targetTemperature'] = state['temperature']
         ac_state['fanLevel'] = fan_request_dict[state['fan']]      
-        self.client.pod_change_ac_state(uid, ac_state) 
+        self.client.pod_change_ac_state(uid, ac_state)
+    
+    def get_all_ac_states(self) -> dict:
+        resp = {}
+        devices = self.client.get_all_devices_states()        
+        fan_response_dict = {
+            "low":    "Low",
+            "medium": "Med",
+            "high":   "High",
+            "auto":   "Auto"
+        }
+        for name, ac_state in devices.items():
+            resp[name] = {'power': 'OFF', 'temperature': ac_state['targetTemperature'], 'fan': fan_response_dict[ac_state['fanLevel']], 'mode': ac_state['mode'].upper()}
+            if ac_state['on']:
+                resp[name]['power'] = 'ON' 
+        return resp

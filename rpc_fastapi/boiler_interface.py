@@ -11,7 +11,10 @@ class Boiler:
     def __del__(self):
         self.sock.close()
 
-    def get_switch_state(self, id : str) -> str:
+    def get_all_switch_states(self) -> dict:
+        return {0: self.get_switch_state(0)}
+
+    def get_switch_state(self, id : str) -> dict:
         msg = '5aa5aa555aa5aa55000000000000000000000000000000000000000000000000b9d2000039756a00cc801e3dd90d43b401000000b0be0000d6d3248eb13bf6edf048ed4357f6fb29'
         self.send_msg(msg)
         resp = self.recv_msg()

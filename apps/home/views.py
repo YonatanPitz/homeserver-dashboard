@@ -10,9 +10,8 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, HttpRe
 from django.template import loader
 from django.urls import reverse
 import json
-import time
-import requests
 from .models import AC, Switch, Fan, Routine
+from .tasks import celery_set_status
 
 @login_required(login_url="/login/")
 def index(request):
@@ -33,11 +32,6 @@ def new_routine(request):
     if request.method == 'POST':
         print(request.POST['RoutineName'])
         print(request.POST['NumOfActions'])
-    # else:
-        # form = RoutineForm()
-        # formset = formset_factory(ActionForm)
-        # formset = ActionFormSet(queryset=Action.objects.none())
-        # pass
     context = {'segment': 'new_routine'}
     html_template = loader.get_template('home/new_routine.html')
     context['acs_list'] = [{'id': x.id, 'name': x.name} for x in AC.objects.all()]
@@ -64,6 +58,17 @@ def routines(request):
                 routine_dict['actions'].append(action_dict)
             context['routines'].append(routine_dict)
         return HttpResponse(html_template.render(context, request))
+    if request.method == 'PUT':
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        if is_ajax: 
+            data = json.load(request)
+            routine = Routine.objects.get(id=data['id'])
+            print(routine.actions)
+            for action in routine.actions:
+                update_db_status(action['entity'], action['id'], action['state'])
+                celery_set_status.delay(action['entity'], action['id'], action['state'])
+            return JsonResponse({'rpc_status': 'OK'})
+        
         
 @login_required(login_url="/login/")
 def pages(request):
@@ -112,25 +117,27 @@ def get_status(request):
     else:
         return HttpResponseBadRequest('Invalid request')
 
+def update_db_status(entity, id, status):
+    if entity == 'AC':
+        ac_model = AC.objects.get(id=id)
+        ac_model.power = status['power']
+        ac_model.temperature = status['temperature']
+        ac_model.fan = status['fan']
+        ac_model.mode = status['mode']
+        ac_model.save()
+    if entity == 'switch':
+        switch_model = Switch.objects.get(id=id)
+        switch_model.power = status['power']
+        switch_model.save()
+
 @login_required(login_url="/login/")
 def set_status(request):
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     if is_ajax:
         if request.method == 'PUT':
             data = json.load(request)
-            entity = data['entity']
-            id = data['id']
-            status = data['status']
-            headers = {'content-type' : 'application/json'}
-            if entity == 'AC':
-                ac_model = AC.objects.get(id=id)
-                requests.put(f'http://127.0.0.1:8001/acs/{ac_model.api}/{ac_model.name}', json=status, headers=headers)
-            if entity == 'switch':
-                switch_model = Switch.objects.get(id=id)
-                requests.put(f'http://127.0.0.1:8001/switches/{switch_model.api}/{switch_model.api_id}', json=status, headers=headers)
-            if entity == 'fan':
-                fan_model = Fan.objects.get(id=id)
-                requests.put(f'http://127.0.0.1:8001/fans/{fan_model.api_id}', json=status, headers=headers)
+            update_db_status(data['entity'], data['id'], data['status'])
+            celery_set_status.delay(data['entity'], data['id'], data['status'])
             return JsonResponse({'rpc_status': 'OK'})
     else:
         return HttpResponseBadRequest('Invalid request')

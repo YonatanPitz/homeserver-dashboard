@@ -59,7 +59,7 @@ class Switcher(SwitchInterface):
         hex_response = hexlify(state_resp)
         return hex_response[150:152].decode()
 
-    def get_switch_state(self, id : str) -> bool:
+    def get_switch_state(self, id : str) -> dict:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if id not in self.device_ids_and_ips:
             print(f"Recieved unrecognized device id {id}")
@@ -89,3 +89,9 @@ class Switcher(SwitchInterface):
         turn_on_packet = f"fef05d0002320102{session_id}340001000000000000000000{timestamp}00000000000000000000f0fe{id}" + "0" * 72 + f"000106000{command}0000000000"
         self._send_resp(s, turn_on_packet)
         s.close()
+    
+    def get_all_switch_states(self) -> dict:
+        res = {}
+        for id in self.device_ids_and_ips.keys():
+            res[id] = self.get_switch_state(id)
+        return res

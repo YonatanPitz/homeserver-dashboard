@@ -15,6 +15,11 @@ class EwelinkInterface(SwitchInterface):
     def set_switch_state(self, id : str, state : bool):
         rpc_server.app.ewelink.ewe_client.switch(state, id, None)
 
+    def get_all_switch_states(self) -> dict:
+        devices = rpc_server.app.ewelink.ewe_client.get_devices(force_update=True)
+        return {x['deviceid']: {'power': x['params']['switch'].upper()} for x in devices}
+        # return devices
+
 class Ewelink():
     def __init__(self):
         try:

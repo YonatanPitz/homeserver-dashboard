@@ -14,3 +14,7 @@ class AirConditionerInterface:
     def get_ac_state(self, name : str) -> dict:
         """Get current state of air conditioner."""
         pass
+    
+    def get_all_ac_states(self) -> dict:
+        """Get current state of all air conditioners."""
+        pass

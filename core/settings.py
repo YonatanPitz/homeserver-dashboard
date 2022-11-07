@@ -7,6 +7,8 @@ import os
 from decouple import config
 from unipath import Path
 
+CELERY_BROKER_URL = 'amqp://pitz:' + config('RABBIT_PASS') +'@localhost:5672/myvhost'
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = Path(__file__).parent
 CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,6 +31,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_beat',
     'apps.home'  # Enable the inner home (home)
 ]
 
@@ -99,7 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Israel'
 
 USE_I18N = True
 
