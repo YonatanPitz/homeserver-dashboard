@@ -1,10 +1,13 @@
 import requests
-from .models import Switch, AC, Fan
-
-from celery import shared_task
+from .models import Switch, AC, Fan, Routine
+from django.core.mail import send_mail
+from celery import shared_task, group
 
 @shared_task(ignore_result=True)
 def celery_set_status(entity, id, status):
+    print(entity)
+    print(id)
+    print(status)
     headers = {'content-type' : 'application/json'}
     if entity == 'AC':
         ac_model = AC.objects.get(id=id)
@@ -15,6 +18,11 @@ def celery_set_status(entity, id, status):
     if entity == 'fan':
         fan_model = Fan.objects.get(id=id)
         requests.put(f'http://127.0.0.1:8001/fans/{fan_model.api_id}', json=status, headers=headers)
+
+@shared_task(ignore_result=True)
+def celery_run_routine(id):
+    routine = Routine.objects.get(id=id)
+    group(celery_set_status.s(action['entity'], action['id'], action['state']) for action in routine.actions)()
 
 @shared_task(ignore_result=True)
 def celery_update_all():
@@ -32,3 +40,13 @@ def celery_update_all():
         ac.fan = ac_res['fan']
         ac.mode = ac_res['mode']
         ac.save()
+
+@shared_task(ignore_result=True)
+def send_email():
+    send_mail(
+    'Routine Occured',
+    'Routine {} occured now.',
+    'Homeserver',
+    ['pitz.1337@gmail.com'],
+    fail_silently=False,
+    )

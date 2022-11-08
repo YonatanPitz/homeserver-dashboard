@@ -5,13 +5,14 @@ Copyright (c) 2019 - present AppSeed.us
 
 from django import template
 from django.contrib.auth.decorators import login_required
-from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, HttpResponseBadRequest
 from django.template import loader
 from django.urls import reverse
+from django.shortcuts import redirect
 import json
 from .models import AC, Switch, Fan, Routine
-from .tasks import celery_set_status
+from .tasks import celery_set_status, celery_run_routine
+# from celery import group
 
 @login_required(login_url="/login/")
 def index(request):
@@ -30,14 +31,34 @@ def index(request):
 @login_required(login_url="/login/")
 def new_routine(request):
     if request.method == 'POST':
-        print(request.POST['RoutineName'])
-        print(request.POST['NumOfActions'])
-    context = {'segment': 'new_routine'}
-    html_template = loader.get_template('home/new_routine.html')
-    context['acs_list'] = [{'id': x.id, 'name': x.name} for x in AC.objects.all()]
-    context['switches_list'] = [{'id': x.id, 'name': x.name} for x in Switch.objects.all()]
-    context['fans_list'] = [{'id': x.id, 'name': x.name} for x in Fan.objects.all()]
-    return HttpResponse(html_template.render(context, request))
+        routine = Routine()
+        routine.name = request.POST['RoutineName']
+        actions = []
+        for i in range(1, int(request.POST['NumOfActions'])+1):
+            Ent = request.POST[f'Entity-{i}'].split(' ')
+            # print(f'{i}: {Ent}')
+            action = {'entity': Ent[0], 'id': Ent[1]}
+            if Ent[0] == 'switch':
+                action['state'] = {'power': request.POST[f'power{i}']}
+            if Ent[0] == 'AC':
+                action['state'] = {'power': request.POST[f'power{i}'],
+                                   'temp': request.POST[f'temp{i}'],
+                                   'fan': request.POST[f'fan{i}'],
+                                   'mode': request.POST[f'mode{i}']}
+            if Ent[0] == 'fan':
+                action['state'] = {'light': request.POST[f'light{i}'],
+                                   'fan': request.POST[f'fan{i}']}
+            actions.append(action)
+        routine.actions = actions
+        routine.save()
+        return redirect('/routines')
+    if request.method == 'GET':
+        context = {'segment': 'new_routine'}
+        html_template = loader.get_template('home/new_routine.html')
+        context['acs_list'] = [{'id': x.id, 'name': x.name} for x in AC.objects.all()]
+        context['switches_list'] = [{'id': x.id, 'name': x.name} for x in Switch.objects.all()]
+        context['fans_list'] = [{'id': x.id, 'name': x.name} for x in Fan.objects.all()]
+        return HttpResponse(html_template.render(context, request))
 
 @login_required(login_url="/login/")
 def routines(request):
@@ -63,10 +84,10 @@ def routines(request):
         if is_ajax: 
             data = json.load(request)
             routine = Routine.objects.get(id=data['id'])
-            print(routine.actions)
             for action in routine.actions:
                 update_db_status(action['entity'], action['id'], action['state'])
-                celery_set_status.delay(action['entity'], action['id'], action['state'])
+            # g = group(celery_set_status.s(action['entity'], action['id'], action['state']) for action in routine.actions)()
+            celery_run_routine(data['id'])
             return JsonResponse({'rpc_status': 'OK'})
         
         
